@@ -1,0 +1,120 @@
+<{include file="header.htm"}>
+<div id='_search_panel'></div>
+
+<div class="main-margin-div">
+	<div id="client_list"></div>
+</div>
+<div id="datagrid_client"></div>
+<div id="export_client"></div>
+<div id="client_data_deal"></div>
+
+<script src="assets/datepicker/WdatePicker.js" type="text/javascript"></script>
+<script src="assets/js/client_list.js?1.1" type="text/javascript"></script>
+<script language="JavaScript" type="text/javascript">
+$(document).ready(function(){
+	search_panel_info();
+	//设置列表
+	$('#client_list').datagrid({
+		title:"<b>客户列表</b>",
+		// height:get_list_height_fit_window('_search_panel',60),
+		nowrap: true,
+		striped: true,
+		pagination:true,
+		autoRowHeight:true,
+		rownumbers:true,
+		checkOnSelect:false,
+		pageSize:get_list_rows_cookie(),
+		pageList:[50,30,10],
+		sortName:'cle_id',
+		sortOrder:'desc',//降序排列
+		idField:'cle_id',
+		url:"index.php?c=client&m=list_client_query",
+		queryParams:{},
+		frozenColumns:[[
+		{field:'ck',checkbox:true},
+		{title:'操作',field:'opter_txt',width:50,align:"CENTER",formatter:function(value,rowData,rowIndex){
+			return "<a href='###' onclick=link_client_accept('"+rowData.cle_id+"','link'); title='业务受理'><span title='受理' class='iconfont' align='absmiddle'>&#xe641;</span></a>";
+		}}
+		]],
+		columns:[[
+		<{section name=key loop=$cle_display_field}>
+		{title: "<{$cle_display_field[key].name}>" ,field: '<{$cle_display_field[key].fields}>' ,align:"CENTER",width:"<{$cle_display_field[key].field_list_width}>",sortable:true,formatter:function(value,rowData,rowIndex){
+			<{if $cle_display_field[key].fields == 'cle_name'  }>
+			return "<span><a href='###' onclick=link_client_accept('"+rowData.cle_id+"','link'); class='underline' title='业务受理'>"+value+"</a></span>";
+			<{elseif $cle_display_field[key].fields == 'cle_phone' || $cle_display_field[key].fields == 'con_mobile' ||$cle_display_field[key].fields == 'cle_phone2'||$cle_display_field[key].fields == 'cle_phone3'}>
+			if(value)
+			{
+				var show_real = value;
+			
+				return "<a href='###' onclick=link_client_accept('"+rowData.cle_id+"','dial','"+value+"'); class='underline' title='业务受理'>"+show_real+"</a>&nbsp;&nbsp;<a href='javascript:;' onclick=link_client_accept('"+rowData.cle_id+"','dial','"+value+"'); title='呼叫'><span class='glyphicon glyphicon-earphone'></span></a><{if $power_sendsms}>&nbsp;&nbsp;<a href='javascript:;' onclick='sys_send_sms(\""+value+"\")' title='发短信'><span class='glyphicon glyphicon-envelope'></span></a><{/if}>";
+			}
+			<{elseif $cle_display_field[key].fields == "cle_address"}>
+			return "<span class='show-tooltip'>"+value+"</span>";
+			<{elseif $cle_display_field[key].fields == "cle_remark"}>
+			return "<span class='show-tooltip'>"+value+"</span>";
+			<{else}>
+			return value;
+			<{/if}>
+		}},
+		<{/section}>
+		{title:"cle_id" ,field:"cle_id",hidden:true}
+		]],
+		onLoadSuccess: function(){
+			$('#client_list').datagrid('clearSelections');
+			$('#client_list').datagrid('clearChecked');
+			$('.show-tooltip').tooltip({
+				trackMouse:true,
+				position:'right',
+				onShow: function(){
+					var content = '<div style="width:180px;">'+$(this).text().replace(/\n/g, "<br>")+'</div>';
+					$(this).tooltip('update',content);
+				}
+			});
+		},
+		toolbar:[
+	
+		{
+			iconCls:'iconfont',
+			text:'&#xe61b;<span>删除客户</span>',
+			handler:function(){
+				remove_client();
+			}
+		} ,
+		
+
+	
+		
+		{
+			iconCls:'iconfont',
+			text:'&#xe675;<span>导出全部CSV</span>',
+			handler:function(){
+				output_client('csv');
+			}
+		},
+        {
+           iconCls:'iconfont',
+           text:'&#xe675;<span>导出全部EXCEL<span>',
+           handler:function(){
+               output_client('excel');
+           }
+        },
+	
+		{
+			iconCls:'iconfont',
+			text:'&#xe615;<span>列表设置</span>',
+			handler:function(){
+				datagrid_client_window();
+			}
+		}
+		]
+	});
+	var pager = $('#client_list').datagrid('getPager');
+	$(pager).pagination({onChangePageSize:function(rows){
+		set_list_rows_cookie(rows);
+	}});
+});
+var delete_client_relative = <{$delete_client_relative|default:'0'}>;
+
+
+</script>
+<{include file="footer.htm"}>
